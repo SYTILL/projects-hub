@@ -217,6 +217,8 @@
     <script>
         //---------init boxes-----------------
         var boxSize = 160 + 20; //box-height + margin 
+        var numOfBox1 = 8;
+        var numOfBox2 = 9;
         function generateBoxesHTMLWithPositions(numBoxes, containerId, offSet = 0) {
             let html = '';
             for (let i = 0; i < numBoxes; i++) {
@@ -225,25 +227,30 @@
             document.getElementById(containerId).innerHTML = html;
         }
 
-        generateBoxesHTMLWithPositions(8, 'boxes-line-1');
-        generateBoxesHTMLWithPositions(8, 'boxes-line-2', -boxSize / 2);
+        generateBoxesHTMLWithPositions(numOfBox1, 'boxes-line-1');
+        generateBoxesHTMLWithPositions(numOfBox2, 'boxes-line-2', -boxSize / 2);
 
         //------move boxes--------
         const boxes1 = document.querySelectorAll('#boxes-line-1 .box');
         const boxes2 = document.querySelectorAll('#boxes-line-2 .box');
-        var boxScrollSpeed = 1;
+        var baseSpeed = 1.6
+        var boxScrollSpeed = baseSpeed;
         function moveBoxes() {
             boxes1.forEach(box => {
                 let positionY = parseFloat(box.style.top);
                 positionY += boxScrollSpeed;
-                if (positionY > window.screen.height) { positionY -= boxSize * 8; }
+                if (positionY > window.screen.height) {
+                    positionY -= boxSize * numOfBox1;
+                }
                 box.style.top = positionY + 'px';
             });
 
             boxes2.forEach(box => {
                 let positionY = parseFloat(box.style.top);
                 positionY -= boxScrollSpeed;
-                if (positionY < -boxSize) { positionY += boxSize * 8; }
+                if (positionY < -boxSize) {
+                    positionY += boxSize * numOfBox2;
+                }
                 box.style.top = positionY + 'px';
             });
 
@@ -255,11 +262,11 @@
         //------speed control on hover------------
         document.querySelectorAll('.boxes').forEach(boxLine => {
             boxLine.addEventListener('mouseover', () => {
-                boxScrollSpeed = 0.5;
+                boxScrollSpeed = baseSpeed / 2;
             });
 
             boxLine.addEventListener('mouseleave', () => {
-                boxScrollSpeed = 1;
+                boxScrollSpeed = baseSpeed;
             });
         });
 

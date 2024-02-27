@@ -19,21 +19,11 @@
             position: relative;
             border: 1px solid black;
             margin: 40px;
-            width: 800px;
-            height: 600px;
+            width: 500px;
+            height: 800px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        #overlay-box {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            background-color: blue;
-            opacity: 0.5;
-            border-radius: 10px;
-            /* Rounded corners */
         }
 
         #bottom {
@@ -44,6 +34,7 @@
             background-color: red;
             cursor: pointer;
         }
+
     </style>
 </head>
 
@@ -53,7 +44,7 @@
         <div id="bottom"></div>
     </div>
     <script>
-        const canvasHeight = 600;
+        const canvasHeight = 800;
 
         let engine = Matter.Engine.create({ gravity: { x: 0, y: 0 } });
         let world = engine.world;
@@ -61,25 +52,29 @@
         let render = Matter.Render.create({
             element: document.getElementById('canv'),
             engine: engine,
+            options: {
+                height: 800,
+                width: 500,
+            }
         });
 
-        let ground = Matter.Bodies.rectangle(400, canvasHeight, 810, 60, { isStatic: true });
+        let ground = Matter.Bodies.rectangle(400, canvasHeight, 1600, 60, { isStatic: true });
 
 
 
         const boxInfo = {
             h: 160,
             w: 210,
-            gap: 20,
-            netHeight: 160 + 20,
-            num1: 2,
-            num2: 3,
+            gap: 50,
+            netHeight: 160 + 50,
+            num1: 6,
+            num2: 7,
         };
         console.log(boxInfo.netHeight);
         function createBoxes(info) {
             let boxes = [];
-            const col1posX = 220;
-            const col2posX = col1posX + info.gap + info.w;
+            const col1posX = 120;
+            const col2posX = col1posX + info.w + 50;
 
             for (let i = 0; i < info.num1; i++) {
                 let box = Matter.Bodies.rectangle(

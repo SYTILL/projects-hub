@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Untitled</title>
+    <!-- <link rel="stylesheet" href="./style.css"> -->
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <style>
+        :root {}
+
+        body,
+        html {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" viewBox="0 0 700 700" width="700" height="700" opacity="1"><defs><linearGradient gradientTransform="rotate(150, 0.5, 0.5)" x1="50%" y1="0%" x2="50%" y2="100%" id="ffflux-gradient"><stop stop-color="hsl(218, 56%, 72%)" stop-opacity="1" offset="0%"></stop><stop stop-color="hsl(227, 100%, 50%)" stop-opacity="1" offset="100%"></stop></linearGradient><filter id="ffflux-filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.002" numOctaves="2" seed="2" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"></feTurbulence><feGaussianBlur stdDeviation="27 0" x="0%" y="0%" width="100%" height="100%" in="turbulence" edgeMode="duplicate" result="blur"></feGaussianBlur><feBlend mode="color-dodge" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" in2="blur" result="blend"></feBlend></filter></defs><rect width="700" height="700" fill="url(%23ffflux-gradient)" filter="url(%23ffflux-filter)"></rect></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+
+            overflow: hidden;
+            /* Hide horizontal overflow */
+
+        }
+
+        header {
+            color: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav {
+            display: flex;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            /* Light text color */
+            margin-left: 20px;
+        }
+
+        .title-text {
+            font-size: 30px;
+            margin: 20px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        /* --------------container starts here--------------- */
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+        }
+
+        .side-container {
+            display: flex;
+            flex-direction: column;
+            width: 30%;
+
+        }
+
+        .side-text {
+            margin-left: 20px;
+        }
+
+        /* --------effect bar--------- */
+        .effect-bar-container {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .cylinder-buttons {
+            position: absolute;
+            right: 0;
+            bottom: 40px;
+            /* Adjust as needed */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .cylinder-button {
+            width: 150px;
+            height: 60px;
+            border-radius: 30px;
+            background-color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-right: 10px;
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            right: -100px;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 15px;
+            /* Constant gap between buttons */
+            position: relative;
+        }
+
+        .cylinder-button:hover {
+            transform: translateX(-60px);
+        }
+
+        .circle {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: relative;
+            left: 10px;
+        }
+
+        .text {
+            position: relative;
+            font-size: 14px;
+            left: 20px;
+        }
+
+        .symbol {
+            position: relative;
+            font-size: 24px;
+            font-weight: bold;
+            left: -17px;
+        }
+
+        /* --------mid container + boxes ----------------- */
+        .mid-container {
+            display: flex;
+            width: 30%;
+            height: 100%;
+            min-width: 500px;
+            justify-content: center;
+            /* align-items: center; */
+        }
+
+        .boxes {
+            display: flex;
+            width: 10%;
+            min-width: 220px;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+            /* Adjust as needed */
+        }
+
+        .boxes:last-child {
+            margin-right: 0;
+        }
+
+        .box {
+            position: absolute;
+            width: 200px;
+            height: 150px;
+            border: 5px solid #dccdff;
+            border-radius: 25px;
+            /* margin: var(--box-margin); */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="side-container">
+            <b class="title-text">UNTITLED</b>
+            <h2 class="side-text">This is some text on the left</h2>
+        </div>
+        <div class="mid-container">
+            <div class="boxes" id="boxes-line-1"></div>
+            <div class="boxes" id="boxes-line-2"></div>
+        </div>
+        <div class="side-container">
+            <header>
+                <nav>
+                    <a href="#">Button 1</a>
+                    <a href="#">Button 2</a>
+                    <a href="#">Button 3</a>
+                </nav>
+            </header>
+            <div class="cylinder-buttons">
+                <div class="cylinder-button">
+                    <div class="circle"></div>
+                    <div class="symbol">&lt;</div>
+                    <div class="text">Text</div>
+                </div>
+                <div class="cylinder-button">
+                    <div class="circle"></div>
+                    <div class="symbol">&lt;</div>
+                    <div class="text">Text</div>
+                </div>
+                <div class="cylinder-button">
+                    <div class="circle"></div>
+                    <div class="symbol">&lt;</div>
+                    <div class="text">Text</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ##############################javascript starts here############################## -->
+    <script>
+        //---------init boxes-----------------
+        var boxSize = 160 + 20; //box-height + margin 
+        var numOfBox1 = 8;
+        var numOfBox2 = 9;
+        function generateBoxesHTMLWithPositions(numBoxes, containerId, offSet = 0) {
+            let html = '';
+            for (let i = 0; i < numBoxes; i++) {
+                html += `<div class="box" style="top: ${i * boxSize + offSet}px;">${i + 1}</div>`;
+            }
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        generateBoxesHTMLWithPositions(numOfBox1, 'boxes-line-1');
+        generateBoxesHTMLWithPositions(numOfBox2, 'boxes-line-2', -boxSize / 2);
+
+        //------move boxes--------
+        const boxes1 = document.querySelectorAll('#boxes-line-1 .box');
+        const boxes2 = document.querySelectorAll('#boxes-line-2 .box');
+        var baseSpeed = 1.6
+        var boxScrollSpeed = baseSpeed;
+        function moveBoxes() {
+            boxes1.forEach(box => {
+                let positionY = parseFloat(box.style.top);
+                positionY += boxScrollSpeed;
+                if (positionY > window.screen.height) {
+                    positionY -= boxSize * numOfBox1;
+                }
+                box.style.top = positionY + 'px';
+            });
+
+            boxes2.forEach(box => {
+                let positionY = parseFloat(box.style.top);
+                positionY -= boxScrollSpeed;
+                if (positionY < -boxSize) {
+                    positionY += boxSize * numOfBox2;
+                }
+                box.style.top = positionY + 'px';
+            });
+
+            requestAnimationFrame(moveBoxes);
+        }
+
+        moveBoxes();
+
+        //------speed control on hover------------
+        document.querySelectorAll('.boxes').forEach(boxLine => {
+            boxLine.addEventListener('mouseover', () => {
+                boxScrollSpeed = baseSpeed / 2;
+            });
+
+            boxLine.addEventListener('mouseleave', () => {
+                boxScrollSpeed = baseSpeed;
+            });
+        });
+
+
+
+
+    </script>
+</body>
+
+</html>

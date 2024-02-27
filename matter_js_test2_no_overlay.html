@@ -66,36 +66,38 @@
         let ground = Matter.Bodies.rectangle(400, canvasHeight, 810, 60, { isStatic: true });
 
 
-        
+
         const boxInfo = {
             h: 160,
             w: 210,
             gap: 20,
-            num1: 5,
-            num2: 6,
+            netHeight: 160 + 20,
+            num1: 2,
+            num2: 3,
         };
-        function createBoxes(info){
+        console.log(boxInfo.netHeight);
+        function createBoxes(info) {
             let boxes = [];
             const col1posX = 220;
-            const col2posX = col1posX+info.gap+info.w;
-            
-            for (let i=0;i<info.num1;i++){
+            const col2posX = col1posX + info.gap + info.w;
+
+            for (let i = 0; i < info.num1; i++) {
                 let box = Matter.Bodies.rectangle(
-                    col1posX, 
-                    (info.h+info.gap)*i, 
-                    info.w, 
-                    info.h, 
+                    col1posX,
+                    info.netHeight * i,
+                    info.w,
+                    info.h,
                     { chamfer: { radius: 25 }, dir: "UP" }
                 );
                 boxes.push(box)
             }
-            
-            for (let i=0;i<info.num2;i++){
+
+            for (let i = 0; i < info.num2; i++) {
                 let box = Matter.Bodies.rectangle(
-                    col2posX, 
-                    (info.h+info.gap)*i, 
-                    info.w, 
-                    info.h, 
+                    col2posX,
+                    info.netHeight * i,
+                    info.w,
+                    info.h,
                     { chamfer: { radius: 25 }, dir: "DOWN" }
                 );
                 boxes.push(box)
@@ -132,22 +134,38 @@
                 if (jumpOn) {
                     let randVelo = Math.random() * 4 - 2;
                     let randAng = (Math.random() * 0.02) - 0.01;
-                    Matter.Body.setVelocity(box, { x: box.velocity.x+randVelo, y: box.velocity.y-2+randVelo });
+                    Matter.Body.setVelocity(box, { x: box.velocity.x + randVelo, y: box.velocity.y - 2 + randVelo });
                     Matter.Body.setAngularVelocity(box, randAng);
                 }
-                
-                if (box.dir)
 
                 if (!gravityOn) {
-                    position.y -= 0.01;
+                    if (box.dir == "UP") {
+                        position.y -= 0.01;
+
+                        if (position.y < -boxInfo.netHeight) {
+                            Matter.Body.setPosition(box, {
+                                x: position.x,
+                                y: position.y + boxInfo.netHeight * boxInfo.num1
+                            });
+                        }
+                    }
+                    if (box.dir == "DOWN") {
+                        position.y += 0.01;
+
+                        if (position.y > canvasHeight + boxInfo.netHeight) {
+                            Matter.Body.setPosition(box, {
+                                x: position.x,
+                                y: position.y - boxInfo.netHeight * boxInfo.num2
+                            });
+                        }
+                    }
                 }
-                if (position.y < 0) {
-                    Matter.Body.setPosition(box, { x: position.x, y: (boxInfo.h+boxInfo.gap)*boxInfo.num1 });
-                }
+
+
 
                 //Matter.Body.setPosition(box, { x: position.x, y: position.y });
             }
-            if (jumpOn){
+            if (jumpOn) {
                 jumpOn = false;
             }
         }

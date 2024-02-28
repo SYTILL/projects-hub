@@ -154,7 +154,7 @@
             width: 100%;
             bottom: 50px;
         }
-        
+
         #bottom-border {
             position: relative;
             background-color: rgba(62, 70, 129, 0.5);
@@ -167,43 +167,43 @@
 </head>
 
 <body>
-        <div class="container">
-            <div class="side-container">
-                <b class="title-text">UNTITLED</b>
-                <h2 class="side-text">This is some text on the left</h2>
-            </div>
-            <div class="mid-container">
-                <div id="canv"></div>
-            </div>
-            <div class="side-container">
-                <header>
-                    <nav>
-                        <a href="#">Projects</a>
-                        <a href="#">About Me</a>
-                        <a href="#">Button 3</a>
-                    </nav>
-                </header>
-                <div class="cylinder-buttons">
-                    <div class="cylinder-button" id="cyl-button-3">
-                        <div class="cylinder-button-circle"></div>
-                        <div class="cylinder-button-symbol">&lt;</div>
-                        <div class="cylinder-button-text">Text</div>
-                    </div>
-                    <div class="cylinder-button" id="cyl-button-2">
-                        <div class="cylinder-button-circle"></div>
-                        <div class="cylinder-button-symbol">&lt;</div>
-                        <div class="cylinder-button-text">FLOATING</div>
-                    </div>
-                    <div class="cylinder-button" id="cyl-button-1">
-                        <div class="cylinder-button-circle"></div>
-                        <div class="cylinder-button-symbol">&lt;</div>
-                        <div class="cylinder-button-text">GRAVITY</div>
-                    </div>
+    <div class="container">
+        <div class="side-container">
+            <b class="title-text">UNTITLED</b>
+            <h2 class="side-text">This is some text on the left</h2>
+        </div>
+        <div class="mid-container">
+            <div id="canv"></div>
+        </div>
+        <div class="side-container">
+            <header>
+                <nav>
+                    <a href="#">Projects</a>
+                    <a href="#">About Me</a>
+                    <a href="#">Button 3</a>
+                </nav>
+            </header>
+            <div class="cylinder-buttons">
+                <div class="cylinder-button" id="cyl-button-3">
+                    <div class="cylinder-button-circle"></div>
+                    <div class="cylinder-button-symbol">&lt;</div>
+                    <div class="cylinder-button-text">Text</div>
+                </div>
+                <div class="cylinder-button" id="cyl-button-2">
+                    <div class="cylinder-button-circle"></div>
+                    <div class="cylinder-button-symbol">&lt;</div>
+                    <div class="cylinder-button-text">FLOATING</div>
+                </div>
+                <div class="cylinder-button" id="cyl-button-1">
+                    <div class="cylinder-button-circle"></div>
+                    <div class="cylinder-button-symbol">&lt;</div>
+                    <div class="cylinder-button-text">GRAVITY</div>
                 </div>
             </div>
         </div>
-        <div id="bottom-blur"></div>
-        <div id="bottom-border"></div>
+    </div>
+    <div id="bottom-blur"></div>
+    <div id="bottom-border"></div>
     </div>
 
 
@@ -214,6 +214,10 @@
 
         let engine = Matter.Engine.create({ gravity: { x: 0, y: 0 } });
         let world = engine.world;
+        let Composite = Matter.Composite;
+        let Body = Matter.Body;
+        let Bodies = Matter.Bodies;
+        let Constraint = Matter.Constraint;
 
         let render = Matter.Render.create({
             element: document.getElementById('canv'),
@@ -238,7 +242,7 @@
                     },
                     collisionFilter: {
                         category: bitId,
-                        mask: bitId,
+                        mask: 0x0255,
                     },
                 });
         }
@@ -251,9 +255,52 @@
             w: 210,
             gap: 50,
             netHeight: 160 + 50,
-            num1: 7,
-            num2: 7,
+            num1: 2,
+            num2: 2,
         };
+
+        function addBoundToBox(x, y, w, h, direction) {
+            let box = Bodies.rectangle(
+                x,y,w,h,
+                {
+                    chamfer: { radius: 25 },
+                    dir: direction,
+                    friction: 0.8,
+                    collisionFilter: {
+                        category: 0x0001,
+                        mask: 0x0001,
+                    }
+                },
+            );
+
+            let topBound = Bodies.rectangle(
+                x,(y) - (h / 2)-1,
+                w,1,
+                { collisionFilter: { category: 0x0004, mask: 0x0001 }, },
+            );
+            let bottomBound = Bodies.rectangle(
+                x,(y) + (h / 2)+1,
+                w,1,
+                { collisionFilter: { category: 0x0004, mask: 0x0001 }, },
+            );
+            let leftBound = Bodies.rectangle(
+                x - (w / 2)-1,(y),
+                1,h,
+                { collisionFilter: { category: 0x0004, mask: 0x0001 }, },
+            );
+            let rightBound = Bodies.rectangle(
+                x + (w / 2)+1,(y),
+                1,h,
+                { collisionFilter: { category: 0x0004, mask: 0x0001 }, },
+            );
+
+            let temp = Body.create({
+                parts: [box, topBound, bottomBound, leftBound, rightBound],
+            });
+            console.log(temp.parts);
+            Composite.remove(temp, temp.parts[0]);
+            return temp;
+        }
 
         function createBoxes(info) {
             let boxes = [];
@@ -262,45 +309,33 @@
             const col2posX = center + 130;
 
             for (let i = 0; i < info.num1; i++) {
-                let box = Matter.Bodies.rectangle(
+                boxWithBound = addBoundToBox(
                     col1posX,
                     info.netHeight * i,
                     info.w,
                     info.h,
-                    {
-                        chamfer: { radius: 25 },
-                        dir: "UP",
-                        friction: 0.8,
-                        collisionFilter: {
-                            category: 0x0001,
-                            mask: 0x0001,
-                        }
-                    },
+                    "UP"
                 );
-                boxes.push(box)
+
+                boxes.push(boxWithBound)
             }
 
             for (let i = 0; i < info.num2; i++) {
-                let box = Matter.Bodies.rectangle(
+                boxWithBound = addBoundToBox(
                     col2posX,
                     info.netHeight * i,
                     info.w,
                     info.h,
-                    {
-                        chamfer: { radius: 25 },
-                        dir: "DOWN",
-                        friction: 0.8,
-                        collisionFilter: {
-                            category: 0x0001,
-                            mask: 0x0001,
-                        }
-                    }
+                    "DOWN"
                 );
-                boxes.push(box)
+
+                boxes.push(boxWithBound)
             }
 
             return boxes;
         }
+
+
 
         var objectsBoxes = createBoxes(boxInfo);
 

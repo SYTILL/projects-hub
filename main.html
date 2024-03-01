@@ -256,9 +256,13 @@
             w: 210,
             gap: 50,
             netHeight: 160 + 50,
-            num1: 3,
-            num2: 3,
+            num1: 6,
+            num2: 7,
         };
+
+
+        const boundCategory = 0x0004;
+        const boundMask = 0x0008;
 
         function addBoundToBox(x, y, w, h, direction) {
             let box = Bodies.rectangle(
@@ -275,8 +279,6 @@
                 },
             );
 
-            boundCategory = 0x0004;
-            boundMask = 0x0001;
 
             function createBoundOption() {
                 return {
@@ -396,7 +398,7 @@
         }
 
 
-        
+
 
         //----------------gravity button----------------
         let cylButtonGravity = document.getElementById('cyl-button-1');
@@ -460,22 +462,43 @@
             let left = boxObject.bodies[3];
             let right = boxObject.bodies[4];
 
-            Body.setPosition(top, {
-                x: box.position.x + Math.cos((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
-                y: box.position.y + Math.sin((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
-            });
-            Body.setPosition(bottom, {
-                x: box.position.x - Math.cos((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
-                y: box.position.y - Math.sin((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
-            });
-            Body.setPosition(left, {
-                x: box.position.x - Math.cos((box.angle)) * (boxInfo.w / 2),
-                y: box.position.y - Math.sin((box.angle)) * (boxInfo.w / 2),
-            });
-            Body.setPosition(right, {
-                x: box.position.x + Math.cos((box.angle)) * (boxInfo.w / 2),
-                y: box.position.y + Math.sin((box.angle)) * (boxInfo.w / 2),
-            });
+            const disableAngle = 20;
+            const boxAngleDegree = ((box.angle / Math.PI * 180) % 360 + 360) % 360;
+            if (360 - (90 - disableAngle) <= boxAngleDegree || boxAngleDegree <= (90 - disableAngle)) {
+                top.collisionFilter.mask = 0x0008;
+                Body.setPosition(top, {
+                    x: box.position.x + Math.cos((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
+                    y: box.position.y + Math.sin((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
+                });
+            }
+            else { top.collisionFilter.mask = 0x0000; }
+
+            if (disableAngle <= boxAngleDegree && boxAngleDegree <= (180 - disableAngle)) {
+                left.collisionFilter.mask = 0x0008;
+                Body.setPosition(left, {
+                    x: box.position.x - Math.cos((box.angle)) * (boxInfo.w / 2),
+                    y: box.position.y - Math.sin((box.angle)) * (boxInfo.w / 2),
+                });
+            }
+            else { left.collisionFilter.mask = 0x0000; }
+
+            if (90 + disableAngle <= boxAngleDegree && boxAngleDegree <= (270 - disableAngle)) {
+                bottom.collisionFilter.mask = 0x0008;
+                Body.setPosition(bottom, {
+                    x: box.position.x - Math.cos((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
+                    y: box.position.y - Math.sin((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
+                });
+            }
+            else { bottom.collisionFilter.mask = 0x0000; }
+
+            if (180 + disableAngle <= boxAngleDegree && boxAngleDegree <= (360 - disableAngle)) {
+                right.collisionFilter.mask = 0x0008;
+                Body.setPosition(right, {
+                    x: box.position.x + Math.cos((box.angle)) * (boxInfo.w / 2),
+                    y: box.position.y + Math.sin((box.angle)) * (boxInfo.w / 2),
+                });
+            }
+            else { right.collisionFilter.mask = 0x0000; }
 
             Body.setAngle(top, box.angle);
             Body.setAngle(bottom, box.angle);
@@ -512,22 +535,21 @@
             }
         }
 
-        
-        //---------------------------------KEYBOARD INPUT--------------------------
+        //-----------------%mouse-------------------------
+        const mouse = Matter.Mouse.create(render.canvas);
+        const mouseConstraint = Matter.MouseConstraint.create(engine, {
+            mouse: mouse
+        });
+        Matter.World.add(world, mouseConstraint);
+
+        //---------------------------------%KEYBOARD %INPUT--------------------------
         var keyInputs = Array(255).fill(false);
+        document.addEventListener('keydown', event => { keyInputs[event.keyCode] = true; });
+        document.addEventListener('keyup', event => { keyInputs[event.keyCode] = false; });
 
-        document.addEventListener('keydown', event => {
-            keyInputs[event.keyCode] = true;
-        });
-
-        document.addEventListener('keyup', event => {
-            keyInputs[event.keyCode] = false;
-        });
-
-
-        //-----------------player effect----------------
-        const character1Width = 60;
-        const character1Height = 60;
+        //-----------------%player %character----------------
+        const character1Width = 30;
+        const character1Height = 30;
         const character1X = 1000;
         const character1Y = 800;
         const character1MomementSpeed = 8;
@@ -539,16 +561,20 @@
                 label: 'character1', // Add a label for identification
                 canJump: false,
                 friction: 0.5,
+                mass: 5,
                 //restitution: 0, // Prevent bouncing
                 render: {
                     fillStyle: 'blue',
+                },
+                collisionFilter: {
+                    category: 0x0008,
+                    mask: 0x0004 || 0x0002 || 0x0001,
                 },
                 movementSpeed: character1MomementSpeed,
             }
         );
 
         Matter.World.add(world, character1);
-
 
         var canJump = false;
 
@@ -557,11 +583,11 @@
             var moveY = 0;
 
             //gravity
-            Matter.Body.applyForce(entity, entity.position, { x: 0, y: 0.005 });
+            Matter.Body.applyForce(entity, entity.position, { x: 0, y: 0.01 });
 
             if (keyInputs[38]) { //arrowUp
                 if (canJump) {
-                    Matter.Body.applyForce(entity, entity.position, { x: 0, y: -0.25 }); // Apply upward force
+                    Matter.Body.applyForce(entity, entity.position, { x: 0, y: -0.35 }); // Apply upward force
                     canJump = false;
                 }
             }
@@ -582,7 +608,7 @@
             });
         }
 
-        //------------AFTER / BEFORE UPDATE---------------------
+        //------------AFTER / BEFORE %UPDATE---------------------
         Matter.Events.on(engine, "beforeUpdate", function (event) {
             movePlayer(character1);
         });
@@ -595,9 +621,9 @@
             const pairs = event.pairs;
 
             pairs.forEach(function (pair) {
-                console.log(pair.bodyA.label,pair.bodyB.label);
-                if ((pair.bodyA.label === "character1" && pair.bodyB.label === "ground") ||
-                    (pair.bodyB.label === "character1" && pair.bodyA.label === "ground")) {
+                console.log("adf");
+                if ((pair.bodyA.label === "character1" && ["ground", "box"].includes(pair.bodyB.label)) ||
+                    (pair.bodyB.label === "character1" && ["ground", "box"].includes(pair.bodyA.label))) {
 
                     canJump = true;
                 }

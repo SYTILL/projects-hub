@@ -235,6 +235,7 @@
                 1500, canvasHeight,
                 3000, 100,
                 {
+                    label: "ground",
                     isStatic: true,
                     render: {
                         fillStyle: 'rgba(49, 58, 128, 0)',
@@ -263,6 +264,7 @@
             let box = Bodies.rectangle(
                 x, y, w, h,
                 {
+                    label: 'box',
                     chamfer: { radius: 25 },
                     dir: direction,
                     friction: 0.8,
@@ -275,25 +277,33 @@
 
             boundCategory = 0x0004;
             boundMask = 0x0001;
+
+            function createBoundOption() {
+                return {
+                    label: 'box',
+                    collisionFilter: { category: boundCategory, mask: boundMask },
+                }
+            }
+
             let topBound = Bodies.rectangle(
                 x, (y) - (h / 2),
                 w, 1,
-                { collisionFilter: { category: boundCategory, mask: boundMask }, },
+                createBoundOption(),
             );
             let bottomBound = Bodies.rectangle(
                 x, (y) + (h / 2),
                 w, 1,
-                { collisionFilter: { category: boundCategory, mask: boundMask }, },
+                createBoundOption(),
             );
             let leftBound = Bodies.rectangle(
                 x - (w / 2), (y),
                 1, h,
-                { collisionFilter: { category: boundCategory, mask: boundMask }, },
+                createBoundOption(),
             );
             let rightBound = Bodies.rectangle(
                 x + (w / 2), (y),
                 1, h,
-                { collisionFilter: { category: boundCategory, mask: boundMask }, },
+                createBoundOption(),
             );
 
             return Composite.create({
@@ -348,6 +358,7 @@
             gravityOn: false,
             jumpOn: false,
             floatingOn: false,
+            character1On: false,
         }
 
         function initEffect(box) {
@@ -355,7 +366,10 @@
             let angle = box.angle;
 
             if (box.dir == "UP") {
-                position.y -= 0.01;
+                Matter.Body.setPosition(box, {
+                    x: position.x,
+                    y: position.y - 1
+                });
 
                 if (position.y < -boxInfo.netHeight) {
                     Matter.Body.setPosition(box, {
@@ -365,7 +379,10 @@
                 }
             }
             if (box.dir == "DOWN") {
-                position.y += 0.01;
+                Matter.Body.setPosition(box, {
+                    x: position.x,
+                    y: position.y + 1
+                });
 
                 if (position.y > canvasHeight + boxInfo.netHeight) {
                     Matter.Body.setPosition(box, {
@@ -379,50 +396,7 @@
         }
 
 
-        //-----------------player effect----------------
-        // Define the size and position of the character
-        const characterWidth = 40;
-        const characterHeight = 60;
-        const characterX = 100;
-        const characterY = 300;
-
-        // Create the character body
-        const character = Matter.Bodies.rectangle(
-            characterX, characterY,
-            characterWidth, characterHeight,
-            {
-                label: 'character', // Add a label for identification
-                friction: 0.5,
-                restitution: 0, // Prevent bouncing
-                render: {
-                    fillStyle: 'blue' // Color of the character
-                }
-            }
-        );
-
-        // Handle user input for movement and jumping
-        document.addEventListener('keydown', event => {
-            const keyCode = event.keyCode;
-            const movementSpeed = 5; // Adjust the movement speed as needed
-
-            // Move left (A or left arrow key)
-            if (keyCode === 65 || keyCode === 37) {
-                Matter.Body.setPosition(character, { x: character.position.x - movementSpeed, y: character.position.y });
-            }
-            // Move right (D or right arrow key)
-            else if (keyCode === 68 || keyCode === 39) {
-                Matter.Body.setPosition(character, { x: character.position.x + movementSpeed, y: character.position.y });
-            }
-            // Jump (W, space, or up arrow key)
-            else if (keyCode === 87 || keyCode === 32 || keyCode === 38) {
-                // Implement your jumping logic here
-                // Example: Move the character upward by setting its position
-                Matter.Body.setPosition(character, { x: character.position.x, y: character.position.y - movementSpeed });
-            }
-        });
-
-        // Add the character body to the world
-        Matter.World.add(world, character);
+        
 
         //----------------gravity button----------------
         let cylButtonGravity = document.getElementById('cyl-button-1');
@@ -538,13 +512,97 @@
             }
         }
 
-        function updateOverlay() {
-            controlBoxMovement();
+        
+        //---------------------------------KEYBOARD INPUT--------------------------
+        var keyInputs = Array(255).fill(false);
 
-            requestAnimationFrame(updateOverlay);
+        document.addEventListener('keydown', event => {
+            keyInputs[event.keyCode] = true;
+        });
+
+        document.addEventListener('keyup', event => {
+            keyInputs[event.keyCode] = false;
+        });
+
+
+        //-----------------player effect----------------
+        const character1Width = 60;
+        const character1Height = 60;
+        const character1X = 1000;
+        const character1Y = 800;
+        const character1MomementSpeed = 8;
+
+        const character1 = Matter.Bodies.rectangle(
+            character1X, character1Y,
+            character1Width, character1Height,
+            {
+                label: 'character1', // Add a label for identification
+                canJump: false,
+                friction: 0.5,
+                //restitution: 0, // Prevent bouncing
+                render: {
+                    fillStyle: 'blue',
+                },
+                movementSpeed: character1MomementSpeed,
+            }
+        );
+
+        Matter.World.add(world, character1);
+
+
+        var canJump = false;
+
+        function movePlayer(entity) {
+            var moveX = 0;
+            var moveY = 0;
+
+            //gravity
+            Matter.Body.applyForce(entity, entity.position, { x: 0, y: 0.005 });
+
+            if (keyInputs[38]) { //arrowUp
+                if (canJump) {
+                    Matter.Body.applyForce(entity, entity.position, { x: 0, y: -0.25 }); // Apply upward force
+                    canJump = false;
+                }
+            }
+            // if(keyInputs[40]){ //arrowDown
+            //     moveY += entity.movementSpeed;
+            // }
+
+            if (keyInputs[39]) { //arrowRight
+                moveX += entity.movementSpeed;
+            }
+            if (keyInputs[37]) { //arrowLeft
+                moveX -= entity.movementSpeed;
+            }
+            Body.translate(entity, {
+                x: moveX,
+                y: moveY,
+
+            });
         }
 
-        updateOverlay();
+        //------------AFTER / BEFORE UPDATE---------------------
+        Matter.Events.on(engine, "beforeUpdate", function (event) {
+            movePlayer(character1);
+        });
+
+        Matter.Events.on(engine, "afterUpdate", function (event) {
+            controlBoxMovement();
+        });
+
+        Matter.Events.on(engine, 'collisionStart', function (event) {
+            const pairs = event.pairs;
+
+            pairs.forEach(function (pair) {
+                console.log(pair.bodyA.label,pair.bodyB.label);
+                if ((pair.bodyA.label === "character1" && pair.bodyB.label === "ground") ||
+                    (pair.bodyB.label === "character1" && pair.bodyA.label === "ground")) {
+
+                    canJump = true;
+                }
+            });
+        });
 
 
 

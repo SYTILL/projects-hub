@@ -213,6 +213,7 @@
         const canvasHeight = 1200;
 
         let engine = Matter.Engine.create({ gravity: { x: 0, y: 0 } });
+        engine.timing.delta = 1000 / 60; // Adjust as needed
         let world = engine.world;
         let Composite = Matter.Composite;
         let Body = Matter.Body;
@@ -285,6 +286,7 @@
                 return {
                     label: 'box',
                     isStatic: true,
+                    friction: 1,
                     collisionFilter: { category: boundInfo.boundCategory, mask: boundInfo.boundMask },
                 }
             }
@@ -560,7 +562,9 @@
                 label: 'character1', // Add a label for identification
                 canJump: false,
                 mass: 5,
-                restitution: 0, // Prevent bouncing
+                restitution: 0.2, // Prevent bouncing
+                angularDamping: 0.5,
+                friction: 1,
                 render: {
                     fillStyle: 'blue',
                 },
@@ -617,11 +621,20 @@
         //------------AFTER / BEFORE %UPDATE---------------------
         Matter.Events.on(engine, "beforeUpdate", function (event) {
             movePlayer(character1.bodies[0]);
+
+            //limit the speed
+            let maxSpeed = 10;
+            Body.setVelocity(character1.bodies[0], {
+                x: Math.min(maxSpeed, Math.max(-maxSpeed, character1.bodies[0].velocity.x)),
+                y: Math.min(maxSpeed, Math.max(-maxSpeed, character1.bodies[0].velocity.y)),
+            });
         });
 
         Matter.Events.on(engine, "afterUpdate", function (event) {
             controlBoxMovement();
         });
+
+
 
         Matter.Events.on(engine, 'collisionStart', function (event) {
             const pairs = event.pairs;
@@ -631,13 +644,11 @@
                 if (pair.bodyA.label === "character1" && ["ground", "box"].includes(pair.bodyB.label)) {
                     canJump = true;
                     Body.setAngle(character1.bodies[0], pair.bodyB.angle);
-                Matter.Body.applyForce(character1.bodies[0], character1.bodies[0].position, { x: 0, y: -0.01 });
                     console.log(character1.bodies[0].angle / Math.PI * 180);
                 }
                 else if (pair.bodyB.label === "character1" && ["ground", "box"].includes(pair.bodyA.label)) {
                     canJump = true;
                     Body.setAngle(character1.bodies[0], pair.bodyA.angle);
-                Matter.Body.applyForce(character1.bodies[0], character1.bodies[0].position, { x: 0, y: -0.01 });
                     console.log(character1.bodies[0].angle / Math.PI * 180);
                 }
             });

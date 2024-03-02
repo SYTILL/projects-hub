@@ -184,6 +184,16 @@
                 </nav>
             </header>
             <div class="cylinder-buttons">
+                <div class="cylinder-button" id="cyl-button-5">
+                    <div class="cylinder-button-circle"></div>
+                    <div class="cylinder-button-symbol">&lt;</div>
+                    <div class="cylinder-button-text">Text</div>
+                </div>
+                <div class="cylinder-button" id="cyl-button-4">
+                    <div class="cylinder-button-circle"></div>
+                    <div class="cylinder-button-symbol">&lt;</div>
+                    <div class="cylinder-button-text">Text</div>
+                </div>
                 <div class="cylinder-button" id="cyl-button-3">
                     <div class="cylinder-button-circle"></div>
                     <div class="cylinder-button-symbol">&lt;</div>
@@ -252,6 +262,7 @@
         let ground = createGround(1);
         let groundDefault = createGround(2);
 
+        //%boxinfo
         const boxInfo = {
             h: 160,
             w: 210,
@@ -265,7 +276,7 @@
         const boundInfo = {
             boundCategory: 4,
             boundMask: 8,
-            width: 5,
+            width: 20,
         }
 
         function addBoundToBox(x, y, w, h, direction) {
@@ -284,30 +295,37 @@
 
             function createBoundOption() {
                 return {
-                    label: 'box',
+                    label: 'bound',
                     isStatic: true,
                     friction: 1,
+                    frictionStatic: 1,
+                    render: {
+                        strokeStyle: 'black',
+                        //lineWidth: 1, //dev mode
+                        lineWidth: 0,
+                        fillStyle: 'transparent',
+                    },
                     collisionFilter: { category: boundInfo.boundCategory, mask: boundInfo.boundMask },
                 }
             }
 
             let topBound = Bodies.rectangle(
-                x, (y) - (h / 2) + boundInfo.width / 2,
+                x, y - (h / 2),
                 w, boundInfo.width,
                 createBoundOption(),
             );
             let bottomBound = Bodies.rectangle(
-                x, (y) + (h / 2) - boundInfo.width / 2,
+                x, y + (h / 2),
                 w, boundInfo.width,
                 createBoundOption(),
             );
             let leftBound = Bodies.rectangle(
-                x - (w / 2) + boundInfo.width / 2, (y),
+                x - (w / 2), y,
                 boundInfo.width, h,
                 createBoundOption(),
             );
             let rightBound = Bodies.rectangle(
-                x + (w / 2) - boundInfo.width / 2, (y),
+                x + (w / 2), y,
                 boundInfo.width, h,
                 createBoundOption(),
             );
@@ -355,6 +373,7 @@
 
         //#####################effects start here###################
 
+        //%effects
         var effects = {
             initEffect: true,
             gravityOn: false,
@@ -363,14 +382,15 @@
             character1On: false,
         }
 
+        //------%initEffect-------
+        const boxSlidingSpeed = 0.5;
         function initEffect(box) {
             let position = box.position;
             let angle = box.angle;
 
             if (box.dir == "UP") {
-                let upVector = { x: box.position.x, y: box.position.y - 1 }
+                let upVector = { x: position.x, y: position.y - boxSlidingSpeed }
                 Body.setPosition(box, upVector, true);
-
                 if (position.y < -boxInfo.netHeight) {
                     Matter.Body.setPosition(box, {
                         x: position.x,
@@ -379,9 +399,8 @@
                 }
             }
             if (box.dir == "DOWN") {
-                let upVector = { x: box.position.x, y: box.position.y + 1 }
+                let upVector = { x: position.x, y: position.y + boxSlidingSpeed }
                 Body.setPosition(box, upVector, true);
-
                 if (position.y > canvasHeight + boxInfo.netHeight) {
                     Matter.Body.setPosition(box, {
                         x: position.x,
@@ -393,10 +412,8 @@
 
         }
 
-
-
-
-        //----------------%gravity button----------------
+        //----------------%gravity %button----------------
+        var noGroundInit = true;
         let cylButtonGravity = document.getElementById('cyl-button-1');
         cylButtonGravity.addEventListener('click', () => {
             if (effects.gravityOn == false) {
@@ -410,7 +427,10 @@
                 effects.floatingOn = false;
 
                 //add ground
-                Matter.World.add(world, ground);
+                if (noGroundInit) {
+                    Matter.World.add(world, ground);
+                    noGroundInit = false;
+                }
             }
         });
 
@@ -424,7 +444,7 @@
         }
 
 
-        //----------------floating button----------------
+        //----------------%floating %button----------------
         let cylButtonFloating = document.getElementById('cyl-button-2');
         cylButtonFloating.addEventListener('click', () => {
             if (effects.floatingOn == false) {
@@ -448,11 +468,25 @@
             });
         }
 
+        //----------------%character button %button----------------
+        let cylButtonCharacter = document.getElementById('cyl-button-3');
+        cylButtonFloating.addEventListener('click', () => {
+            if (effects.character1On == false) {
+                //change button color
+                cylButtonCharacter.style.backgroundColor = 'green';
 
+                //enable effects
+                character1On = true;
+            }
+            else{
+                cylButtonCharacter.style.backgroundColor = '#ccc';
+                character1On = false;
+            }
+        });
 
         //--------------------------OVERALL EFFECT CONTROL + MOVEMENT--------------------------------
 
-        //----------------%boundry update-------------
+        //----------------%boundry update %bound update-------------
         function updateBoundryPosition(boxObject) {
             let box = boxObject.bodies[0];
             let top = boxObject.bodies[1];
@@ -463,35 +497,39 @@
             const disableAngle = 20;
             const boxAngleDegree = ((box.angle / Math.PI * 180) % 360 + 360) % 360;
 
-            if (360 - (90 - disableAngle) <= boxAngleDegree || boxAngleDegree <= (90 - disableAngle)) {
+            var boundOn = Matter.Collision.collides(box, character1.bodies[0]) | false;
+
+            const positionOffset = 10;
+
+            if (!boundOn && (360 - (90 - disableAngle) <= boxAngleDegree || boxAngleDegree <= (90 - disableAngle))) {
                 top.collisionFilter.mask = 0x0008;
                 Body.setPosition(top, {
-                    x: box.position.x + Math.cos((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
-                    y: box.position.y + Math.sin((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
+                    x: box.position.x + Math.cos((box.angle - (Math.PI / 2))) * ((boxInfo.h - positionOffset) / 2),
+                    y: box.position.y + Math.sin((box.angle - (Math.PI / 2))) * ((boxInfo.h - positionOffset) / 2),
                 }, true);
             } else { top.collisionFilter.mask = 0x0000; }
 
-            if (disableAngle <= boxAngleDegree && boxAngleDegree <= (180 - disableAngle)) {
+            if (!boundOn && (disableAngle <= boxAngleDegree && boxAngleDegree <= (180 - disableAngle))) {
                 left.collisionFilter.mask = 0x0008;
                 Body.setPosition(left, {
-                    x: box.position.x - Math.cos((box.angle)) * (boxInfo.w / 2),
-                    y: box.position.y - Math.sin((box.angle)) * (boxInfo.w / 2),
+                    x: box.position.x - Math.cos((box.angle)) * ((boxInfo.w - positionOffset) / 2),
+                    y: box.position.y - Math.sin((box.angle)) * ((boxInfo.w - positionOffset) / 2),
                 }, true);
             } else { left.collisionFilter.mask = 0x0000; }
 
-            if (90 + disableAngle <= boxAngleDegree && boxAngleDegree <= (270 - disableAngle)) {
+            if (!boundOn && (90 + disableAngle <= boxAngleDegree && boxAngleDegree <= (270 - disableAngle))) {
                 bottom.collisionFilter.mask = 0x0008;
                 Body.setPosition(bottom, {
-                    x: box.position.x - Math.cos((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
-                    y: box.position.y - Math.sin((box.angle - (Math.PI / 2))) * (boxInfo.h / 2),
+                    x: box.position.x - Math.cos((box.angle - (Math.PI / 2))) * ((boxInfo.h - positionOffset) / 2),
+                    y: box.position.y - Math.sin((box.angle - (Math.PI / 2))) * ((boxInfo.h - positionOffset) / 2),
                 }, true);
             } else { bottom.collisionFilter.mask = 0x0000; }
 
-            if (180 + disableAngle <= boxAngleDegree && boxAngleDegree <= (360 - disableAngle)) {
+            if (!boundOn && (180 + disableAngle <= boxAngleDegree && boxAngleDegree <= (360 - disableAngle))) {
                 right.collisionFilter.mask = 0x0008;
                 Body.setPosition(right, {
-                    x: box.position.x + Math.cos((box.angle)) * (boxInfo.w / 2),
-                    y: box.position.y + Math.sin((box.angle)) * (boxInfo.w / 2),
+                    x: box.position.x + Math.cos((box.angle)) * ((boxInfo.w - positionOffset) / 2),
+                    y: box.position.y + Math.sin((box.angle)) * ((boxInfo.w - positionOffset) / 2),
                 }, true);
             } else { right.collisionFilter.mask = 0x0000; }
 
@@ -506,6 +544,7 @@
             // Body.setVelocity(right, box.velocity);
         }
 
+        // %box movement
         function controlBoxMovement() {
             for (let boxObject of objectsBoxes) {
                 let box = boxObject.bodies[0];
@@ -553,7 +592,7 @@
         //-----------------%player %character----------------
         const char1WidthHeight = [30, 30];
         const char1XY = [1000, 800];
-        const character1MomementSpeed = 8;
+        const character1MomementSpeed = 4;
 
         const char1Body = Matter.Bodies.rectangle(
             char1XY[0], char1XY[1],
@@ -562,8 +601,7 @@
                 label: 'character1', // Add a label for identification
                 canJump: false,
                 mass: 5,
-                restitution: 0.2, // Prevent bouncing
-                angularDamping: 0.5,
+                angularDamping: 0.9,
                 friction: 1,
                 render: {
                     fillStyle: 'blue',
@@ -585,8 +623,10 @@
         Matter.World.add(world, character1);
         Matter.Engine.run(engine);
         Matter.Render.run(render);
+
         var canJump = false;
 
+        //%movement %key 
         function movePlayer(entity) {
             var moveX = 0;
             var moveY = 0;
@@ -594,64 +634,68 @@
             //gravity
             Matter.Body.applyForce(entity, entity.position, { x: 0, y: 0.01 });
 
+            //%jump
             if (keyInputs[38]) { //arrowUp
-                if (canJump) {
-                    Matter.Body.applyForce(entity, entity.position, { x: 0, y: -0.35 }); // Apply upward force
+                console.log(entity.force, entity.velocity.y);
+                if (canJump && (entity.velocity.y > -4)) {
+                    Matter.Body.applyForce(entity, entity.position, { x: 0, y: -0.30 }); // Apply upward force
                     canJump = false;
                 }
             }
-            // if(keyInputs[40]){ //arrowDown
-            //     moveY += entity.movementSpeed;
-            // }
-
             if (keyInputs[39]) { //arrowRight
                 moveX += entity.movementSpeed;
             }
             if (keyInputs[37]) { //arrowLeft
                 moveX -= entity.movementSpeed;
             }
+            console.log(canJump);
             Body.translate(entity, {
                 x: moveX,
                 y: moveY,
-
+            });
+            Body.setVelocity(entity, {
+                x: moveX,
+                y: entity.velocity.y,
             });
 
+            //%limit %speed limit
+            let maxSpeed = 10;
+            Body.setVelocity(character1.bodies[0], {
+                x: character1.bodies[0].velocity.x,
+                y: Math.min(maxSpeed, character1.bodies[0].velocity.y),
+            });
         }
 
         //------------AFTER / BEFORE %UPDATE---------------------
-        Matter.Events.on(engine, "beforeUpdate", function (event) {
-            movePlayer(character1.bodies[0]);
 
-            //limit the speed
-            let maxSpeed = 10;
-            Body.setVelocity(character1.bodies[0], {
-                x: Math.min(maxSpeed, Math.max(-maxSpeed, character1.bodies[0].velocity.x)),
-                y: Math.min(maxSpeed, Math.max(-maxSpeed, character1.bodies[0].velocity.y)),
-            });
-        });
 
         Matter.Events.on(engine, "afterUpdate", function (event) {
             controlBoxMovement();
         });
 
-
+        Matter.Events.on(engine, "beforeUpdate", function (event) {
+            movePlayer(character1.bodies[0]);
+        });
 
         Matter.Events.on(engine, 'collisionStart', function (event) {
             const pairs = event.pairs;
-
+            var canJumpCheck = false;
             pairs.forEach(function (pair) {
-
-                if (pair.bodyA.label === "character1" && ["ground", "box"].includes(pair.bodyB.label)) {
-                    canJump = true;
-                    Body.setAngle(character1.bodies[0], pair.bodyB.angle);
-                    console.log(character1.bodies[0].angle / Math.PI * 180);
+                if (pair.bodyA.label === "character1" && ["ground", "bound"].includes(pair.bodyB.label)) {
+                    canJumpCheck = true;
+                    // Body.setAngle(character1.bodies[0], pair.bodyB.angle);
+                    // console.log(character1.bodies[0].angle / Math.PI * 180);
                 }
-                else if (pair.bodyB.label === "character1" && ["ground", "box"].includes(pair.bodyA.label)) {
-                    canJump = true;
-                    Body.setAngle(character1.bodies[0], pair.bodyA.angle);
-                    console.log(character1.bodies[0].angle / Math.PI * 180);
+                else if (pair.bodyB.label === "character1" && ["ground", "bound"].includes(pair.bodyA.label)) {
+                    canJumpCheck = true;
                 }
             });
+            if (canJumpCheck) {
+                canJump = true;
+            }
+            else {
+                canJump = false;
+            }
         });
 
 

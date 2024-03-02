@@ -470,17 +470,17 @@
 
         //----------------%character button %button----------------
         let cylButtonCharacter = document.getElementById('cyl-button-3');
-        cylButtonFloating.addEventListener('click', () => {
+        cylButtonCharacter.addEventListener('click', () => {
             if (effects.character1On == false) {
                 //change button color
                 cylButtonCharacter.style.backgroundColor = 'green';
 
                 //enable effects
-                character1On = true;
+                effects.character1On = true;
             }
-            else{
+            else {
                 cylButtonCharacter.style.backgroundColor = '#ccc';
-                character1On = false;
+                effects.character1On = false;
             }
         });
 
@@ -584,6 +584,10 @@
         });
         Matter.World.add(world, mouseConstraint);
 
+        document.onmousemove  = function () {
+            window.getSelection().removeAllRanges();
+        };
+
         //---------------------------------%KEYBOARD %INPUT--------------------------
         var keyInputs = Array(255).fill(false);
         document.addEventListener('keydown', event => { keyInputs[event.keyCode] = true; });
@@ -636,7 +640,6 @@
 
             //%jump
             if (keyInputs[38]) { //arrowUp
-                console.log(entity.force, entity.velocity.y);
                 if (canJump && (entity.velocity.y > -4)) {
                     Matter.Body.applyForce(entity, entity.position, { x: 0, y: -0.30 }); // Apply upward force
                     canJump = false;
@@ -648,7 +651,6 @@
             if (keyInputs[37]) { //arrowLeft
                 moveX -= entity.movementSpeed;
             }
-            console.log(canJump);
             Body.translate(entity, {
                 x: moveX,
                 y: moveY,

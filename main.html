@@ -302,7 +302,7 @@
                     render: {
                         strokeStyle: 'black',
                         //lineWidth: 1, //dev mode
-                        lineWidth: 0,
+                        lineWidth: 1,
                         fillStyle: 'transparent',
                     },
                     collisionFilter: { category: boundInfo.boundCategory, mask: boundInfo.boundMask },
@@ -497,7 +497,7 @@
             const disableAngle = 20;
             const boxAngleDegree = ((box.angle / Math.PI * 180) % 360 + 360) % 360;
 
-            var boundOn = Matter.Collision.collides(box, character1.bodies[0]) | false;
+            var boundOn = Matter.Collision.collides(box, character1.bodies[0]);
 
             const positionOffset = 10;
 
